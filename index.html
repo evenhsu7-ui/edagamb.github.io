@@ -6,9 +6,9 @@
     <title>我好愛台彩賓果</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #121212; color: #eee; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .main-layout { display: flex; gap: 20px; width: 100%; max-width: 1100px; flex-wrap: wrap; justify-content: center; }
-        .container { background-color: #1e1e1e; border-radius: 12px; padding: 25px; flex: 1; min-width: 350px; max-width: 500px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); height: fit-content; }
-        .stats-sidebar { background-color: #1e1e1e; border-radius: 12px; padding: 25px; flex: 0.8; min-width: 320px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); border: 1px solid #e5a93c; height: fit-content; }
+        .main-layout { display: flex; gap: 20px; width: 100%; max-width: 1200px; flex-wrap: wrap; justify-content: center; }
+        .container { background-color: #1e1e1e; border-radius: 12px; padding: 25px; flex: 1.2; min-width: 400px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); height: fit-content; }
+        .stats-sidebar { background-color: #1e1e1e; border-radius: 12px; padding: 25px; flex: 0.8; min-width: 320px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); border: 1px solid #e5a93c; height: fit-content; position: sticky; top: 20px; }
         h1, h2 { color: #e5a93c; text-align: center; border-bottom: 2px solid #e5a93c; padding-bottom: 10px; margin-top: 0; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #aaa; }
@@ -16,15 +16,15 @@
         button { background-color: #e5a93c; color: #121212; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
         button:hover { background-color: #d49a35; }
         .hidden { display: none; }
-        .summary-card { font-size: 18px; font-weight: bold; line-height: 2; color: #4caf50; background: #000; padding: 15px; border-radius: 8px; }
+        .summary-card { font-size: 18px; font-weight: bold; line-height: 1.8; color: #4caf50; background: #000; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #e5a93c; }
         .summary-card span.lose { color: #ff5252; }
-        .log-container { margin-top: 15px; max-height: 400px; overflow-y: auto; background-color: #000; padding: 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; border: 1px solid #333; }
-        .log-row { border-bottom: 1px dashed #333; padding: 6px 0; }
-        .match-num { color: #111; background-color: #e5a93c; padding: 0 2px; border-radius: 3px; font-weight: bold; }
+        .log-container { margin-top: 15px; max-height: 500px; overflow-y: auto; background-color: #000; padding: 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; border: 1px solid #333; }
+        .log-row { border-bottom: 1px dashed #333; padding: 8px 0; }
+        .match-num { color: #111; background-color: #e5a93c; padding: 0 3px; border-radius: 3px; font-weight: bold; margin: 0 1px; }
         .win-text { color: #ffeb3b; font-weight: bold; }
         .lose-text { color: #777; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; color: #fff; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
         th { color: #e5a93c; }
         .roi-positive { color: #4caf50; }
         .roi-negative { color: #ff5252; }
@@ -35,6 +35,8 @@
 <div class="main-layout">
     <div class="container">
         <h1>🎰 賓果模擬控制台</h1>
+        <p style="text-align: center; color: #e5a93c; font-size: 14px; margin-top: -5px;">(點擊畫面任何地方即啟動 bgm.mp3)</p>
+        
         <div class="form-group">
             <label>選擇玩法：</label>
             <select id="gameType" onchange="updateUI()">
@@ -42,9 +44,10 @@
                 <option value="bigsmall">猜大小玩法</option>
             </select>
         </div>
+
         <div id="starOptionsDiv">
             <div class="form-group">
-                <label>星數：</label>
+                <label>選擇星數：</label>
                 <select id="starCount" onchange="updateInputHint()">
                     <option value="1">1星</option><option value="2">2星</option><option value="3">3星</option>
                     <option value="4" selected>4星</option><option value="5">5星</option><option value="6">6星</option>
@@ -52,49 +55,53 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>選號：</label>
+                <label>選號方式：</label>
                 <select id="pickMode" onchange="updateUI()">
                     <option value="auto">電腦隨機換號</option>
                     <option value="manual">手動固定選號</option>
                 </select>
             </div>
             <div id="manualInputDiv" class="form-group hidden">
-                <label id="manualHint">輸入 4 個號碼：</label>
+                <label id="manualHint">輸入號碼 (空白隔開)：</label>
                 <input type="text" id="manualNumbers" placeholder="例如: 08 16 24 32">
             </div>
         </div>
+
         <div id="bigSmallDiv" class="form-group hidden">
-            <label>預測：</label>
+            <label>預測方向：</label>
             <select id="guessDir">
                 <option value="1">猜大 (41-80)</option>
                 <option value="2">猜小 (01-40)</option>
             </select>
         </div>
+
         <div class="form-group">
-            <label>投入本金：</label>
+            <label>每局投入本金 (25元/注)：</label>
             <input type="number" id="budget" value="1000" step="25">
         </div>
+
         <button onclick="runSimulation()">發射！啟動模擬</button>
-        <div class="log-container" id="logBox">開獎明細將顯示在此...</div>
+        <button onclick="resetGlobalStats()" style="background-color: #444; color: #eee; font-size: 12px; margin-top: 5px;">清除累積戰績</button>
+        
+        <div class="log-container" id="logBox">單局開獎明細將顯示在此...</div>
     </div>
 
     <div class="stats-sidebar">
-        <h2>📊 模擬戰績總表</h2>
-        <div class="summary-card" id="statBox">等待數據中...</div>
+        <h2>📊 累積模擬戰績總表</h2>
+        <div class="summary-card" id="statBox">等待模擬啟動...</div>
         <table>
             <thead>
-                <tr>
-                    <th>項目</th>
-                    <th>數值</th>
-                </tr>
+                <tr><th>項目</th><th>數值</th></tr>
             </thead>
             <tbody>
-                <tr><td>當前模式</td><td id="table-mode">-</td></tr>
-                <tr><td>總期數</td><td id="table-rounds">-</td></tr>
-                <tr><td>勝率(含保本)</td><td id="table-winrate">-</td></tr>
-                <tr><td>淨報酬率 (ROI)</td><td id="table-roi">-</td></tr>
+                <tr><td>總計模擬場次</td><td id="global-sessions">0</td></tr>
+                <tr><td>累積投入本金</td><td id="global-investment">0 元</td></tr>
+                <tr><td>累積淨利潤</td><td id="global-profit">0 元</td></tr>
+                <tr><td>累積勝率(含保本)</td><td id="global-winrate">0 %</td></tr>
+                <tr><td>累積總報酬率 (ROI)</td><td id="global-roi">0 %</td></tr>
             </tbody>
         </table>
+        <p style="font-size: 12px; color: #777; margin-top: 15px;">* 此表會累積多次「發射」的結果，除非重新整理網頁或按清除鍵。</p>
     </div>
 </div>
 
@@ -102,6 +109,13 @@
     let bgm = new Audio('bgm.mp3');
     bgm.loop = true;
     let audioStarted = false;
+
+    // 累積統計變數
+    let globalSessions = 0;
+    let globalInvestment = 0;
+    let globalProfit = 0;
+    let globalWins = 0;
+    let globalRounds = 0;
 
     const payTable = {
         1: { 1: 50 }, 2: { 2: 75 }, 3: { 3: 500, 2: 50 }, 4: { 4: 1000, 3: 100, 2: 25 },
@@ -113,6 +127,7 @@
     };
 
     function initAudio() { if (!audioStarted) { bgm.play().catch(()=>{}); audioStarted = true; } }
+    
     function updateUI() {
         const type = document.getElementById('gameType').value;
         const mode = document.getElementById('pickMode').value;
@@ -121,27 +136,50 @@
         document.getElementById('manualInputDiv').classList.toggle('hidden', mode !== 'manual' || type !== 'star');
         updateInputHint();
     }
+
     function updateInputHint() {
         const star = document.getElementById('starCount').value;
         document.getElementById('manualHint').innerText = `輸入 ${star} 個號碼 (空白隔開)：`;
     }
+
     function generateNums(n) {
         let s = new Set();
         while(s.size < n) s.add(Math.floor(Math.random()*80)+1);
         return Array.from(s).sort((a,b)=>a-b);
     }
 
+    function pad(n) { return n.toString().padStart(2, '0'); }
+
+    function resetGlobalStats() {
+        globalSessions = 0; globalInvestment = 0; globalProfit = 0; globalWins = 0; globalRounds = 0;
+        updateGlobalTable();
+        alert("累積戰績已歸零。");
+    }
+
+    function updateGlobalTable() {
+        const roi = globalInvestment === 0 ? 0 : ((globalProfit / globalInvestment) * 100).toFixed(2);
+        const winRate = globalRounds === 0 ? 0 : ((globalWins / globalRounds) * 100).toFixed(2);
+        
+        document.getElementById('global-sessions').innerText = globalSessions;
+        document.getElementById('global-investment').innerText = `${globalInvestment} 元`;
+        document.getElementById('global-profit').innerText = `${globalProfit} 元`;
+        document.getElementById('global-profit').className = globalProfit >= 0 ? 'roi-positive' : 'roi-negative';
+        document.getElementById('global-winrate').innerText = `${winRate} %`;
+        document.getElementById('global-roi').innerText = `${roi} %`;
+        document.getElementById('global-roi').className = globalProfit >= 0 ? 'roi-positive' : 'roi-negative';
+    }
+
     function runSimulation() {
-        const initialBudget = parseInt(document.getElementById('budget').value);
-        if (isNaN(initialBudget) || initialBudget < 25) return;
+        const budget = parseInt(document.getElementById('budget').value);
+        if (isNaN(budget) || budget < 25) return;
         
         const type = document.getElementById('gameType').value;
         const star = parseInt(document.getElementById('starCount').value);
         const mode = document.getElementById('pickMode').value;
-        const rounds = Math.floor(initialBudget / 25);
+        const rounds = Math.floor(budget / 25);
         
-        let balance = initialBudget;
-        let wins = 0;
+        let sessionBalance = budget;
+        let sessionWins = 0;
         let logs = "";
         let manualNums = [];
 
@@ -151,42 +189,57 @@
         }
 
         for(let i=1; i<=rounds; i++) {
-            balance -= 25;
+            sessionBalance -= 25;
             let draw = generateNums(20);
-            let row = `<div class="log-row">[#${i}] `;
+            let row = `<div class="log-row">[局#${i}] `;
+
             if (type === 'star') {
                 let mine = (mode === 'auto') ? generateNums(star) : manualNums;
                 let hits = mine.filter(n => draw.includes(n));
                 let prize = payTable[star][hits.length] || 0;
-                if(prize > 0) { balance += prize; wins++; row += `<span class="win-text">中${hits.length}顆 +${prize}</span>`; }
-                else { row += `<span class="lose-text">未中</span>`; }
+                
+                row += `選號: ${mine.map(pad).join(' ')} | 開獎: `;
+                draw.forEach(d => {
+                    if(mine.includes(d)) row += `<span class="match-num">${pad(d)}</span> `;
+                    else row += `${pad(d)} `;
+                });
+                
+                row += `| <span class="win-text">中${hits.length}顆</span> `;
+                if(prize > 0) { sessionBalance += prize; sessionWins++; row += `<span class="win-text">獎金:+${prize}</span>`; }
+                else { row += `<span class="lose-text">槓龜</span>`; }
             } else {
                 let big = draw.filter(n => n >= 41).length;
-                let won = (document.getElementById('guessDir').value === '1' && big >= 13) || (document.getElementById('guessDir').value === '2' && (20-big) >= 13);
-                if(won) { balance += 150; wins++; row += `<span class="win-text">勝 +150</span>`; }
+                let small = 20 - big;
+                let dir = document.getElementById('guessDir').value;
+                let won = (dir === '1' && big >= 13) || (dir === '2' && small >= 13);
+                row += `大:${pad(big)} 小:${pad(small)} | `;
+                if(won) { sessionBalance += 150; sessionWins++; row += `<span class="win-text">勝 +150</span>`; }
                 else { row += `<span class="lose-text">敗</span>`; }
             }
             logs += row + `</div>`;
         }
 
-        const netProfit = balance - initialBudget;
-        const roi = ((netProfit / initialBudget) * 100).toFixed(2);
+        const sessionProfit = sessionBalance - budget;
         
-        // 更新旁邊的總表
-        document.getElementById('table-mode').innerText = type === 'star' ? `${star}星玩法` : '猜大小';
-        document.getElementById('table-rounds').innerText = `${rounds} 期`;
-        document.getElementById('table-winrate').innerText = `${((wins/rounds)*100).toFixed(2)} %`;
-        document.getElementById('table-roi').innerText = `${roi} %`;
-        document.getElementById('table-roi').className = netProfit >= 0 ? 'roi-positive' : 'roi-negative';
+        // 更新累積數據
+        globalSessions += 1;
+        globalInvestment += budget;
+        globalProfit += sessionProfit;
+        globalWins += sessionWins;
+        globalRounds += rounds;
+
+        updateGlobalTable();
 
         document.getElementById('statBox').innerHTML = `
-            結算餘額：<span class="${netProfit<0?'lose':''}">${balance} 元</span><br>
-            總淨利潤：<span class="${netProfit<0?'lose':''}">${netProfit} 元</span>
+            單局結果：<br>
+            投入：${budget} 元<br>
+            結餘：<span class="${sessionProfit<0?'lose':''}">${sessionBalance} 元</span><br>
+            淨利：<span class="${sessionProfit<0?'lose':''}">${sessionProfit} 元</span>
         `;
         document.getElementById('logBox').innerHTML = logs;
     }
 
-    window.onload = () => { updateUI(); setTimeout(runSimulation, 300); };
+    window.onload = () => { updateUI(); };
 </script>
 </body>
 </html>
