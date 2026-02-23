@@ -3,238 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我好愛台彩賓果 - 模擬器</title>
+    <title>我好愛台彩賓果 - 全能模擬器</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #eeeeee;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .container {
-            background-color: #1e1e1e;
-            border-radius: 12px;
-            padding: 25px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-        }
-        h1 {
-            color: #e5a93c;
-            text-align: center;
-            border-bottom: 2px solid #e5a93c;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #121212; color: #eee; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background-color: #1e1e1e; border-radius: 12px; padding: 25px; width: 100%; max-width: 650px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        h1 { color: #e5a93c; text-align: center; border-bottom: 2px solid #e5a93c; padding-bottom: 10px; margin-top: 0; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #aaa; }
-        select, input, button {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background-color: #2c2c2c;
-            color: white;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #e5a93c;
-            color: #121212;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.2s;
-        }
+        select, input, button { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #444; background-color: #2c2c2c; color: white; font-size: 16px; box-sizing: border-box; }
+        button { background-color: #e5a93c; color: #121212; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
         button:hover { background-color: #d49a35; }
         .hidden { display: none; }
-        .result-panel {
-            margin-top: 20px;
-            background-color: #181818;
-            border-radius: 8px;
-            padding: 15px;
-            border: 1px solid #333;
-        }
+        .result-panel { margin-top: 20px; background-color: #181818; border-radius: 8px; padding: 15px; border: 1px solid #333; }
         /* 核心報表樣式 */
-        .summary { 
-            font-size: 18px; 
-            font-weight: bold; 
-            line-height: 1.8; 
-            color: #4caf50; 
-            padding: 10px;
-            background: #000;
-            border-radius: 6px;
-        }
+        .summary { font-size: 18px; font-weight: bold; line-height: 1.8; color: #4caf50; padding: 12px; background: #000; border-radius: 6px; }
         .summary span.lose { color: #ff5252; }
-        .log-container {
-            margin-top: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-            background-color: #000;
-            padding: 10px;
-            border-radius: 6px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .log-row { border-bottom: 1px dashed #333; padding: 4px 0; }
+        .log-container { margin-top: 15px; max-height: 350px; overflow-y: auto; background-color: #000; padding: 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; }
+        .log-row { border-bottom: 1px dashed #333; padding: 6px 0; }
         .match-num { color: #111; background-color: #e5a93c; padding: 0 2px; border-radius: 3px; font-weight: bold;}
-        .win-text { color: #ffeb3b; }
-        .lose-text { color: #888; }
+        .win-text { color: #ffeb3b; font-weight: bold; }
+        .lose-text { color: #777; }
     </style>
 </head>
 <body onclick="initAudio()">
 
 <div class="container">
-    <h1>🎰 我好愛台彩賓果 🎰</h1>
-    <p style="text-align: center; color: #e5a93c; font-size: 14px; margin-top: -5px;">(點擊畫面任何地方即刻啟動音樂)</p>
+    <h1>🎰 我好愛台彩賓果 (1-10星版) 🎰</h1>
+    <p style="text-align: center; color: #e5a93c; font-size: 14px; margin-top: -5px;">(點擊畫面啟動背景音樂 bgm.mp3)</p>
 
     <div class="form-group">
-        <label>遊戲模式：</label>
-        <select id="mainChoice" onchange="toggleOptions()">
-            <option value="1">1. 4星玩法</option>
-            <option value="2">2. 猜大小玩法</option>
+        <label>選擇玩法：</label>
+        <select id="gameType" onchange="updateUI()">
+            <option value="star">一般星數玩法 (1-10星)</option>
+            <option value="bigsmall">猜大小玩法</option>
         </select>
     </div>
 
-    <div class="form-group">
-        <label>投入總本金 (25的倍數)：</label>
-        <input type="number" id="moneyInput" value="1000" step="25" min="25">
-    </div>
-
-    <div id="star4Options" class="form-group">
-        <label>選號方式：</label>
-        <select id="pickMode" onchange="toggleManualInput()">
-            <option value="2">電腦隨機換號</option>
-            <option value="1">手動固定選號</option>
+    <div id="starSelectDiv" class="form-group">
+        <label>選擇星數：</label>
+        <select id="starCount">
+            <option value="1">1星</option>
+            <option value="2">2星</option>
+            <option value="3">3星</option>
+            <option value="4" selected>4星</option>
+            <option value="5">5星</option>
+            <option value="6">6星</option>
+            <option value="7">7星</option>
+            <option value="8">8星</option>
+            <option value="9">9星</option>
+            <option value="10">10星</option>
         </select>
-        <div id="manualInputDiv" class="hidden" style="margin-top: 10px;">
-            <label>輸入 4 個數字 (用空白隔開)：</label>
-            <input type="text" id="manualNumbers" placeholder="例如: 05 12 34 78">
-        </div>
     </div>
 
-    <div id="bigSmallOptions" class="form-group hidden">
+    <div id="bigSmallDiv" class="form-group hidden">
         <label>預測方向：</label>
-        <select id="guessDirection">
-            <option value="1">猜大 (41~80號)</option>
-            <option value="2">猜小 (01~40號)</option>
+        <select id="guessDir">
+            <option value="1">猜大 (41-80號)</option>
+            <option value="2">猜小 (01-40號)</option>
         </select>
+    </div>
+
+    <div class="form-group">
+        <label>投入總本金 (25元/注)：</label>
+        <input type="number" id="budget" value="1000" step="25">
     </div>
 
     <button onclick="runSimulation()">開始瘋狂模擬</button>
 
     <div id="resultArea" class="result-panel">
-        <div class="summary" id="summaryBox">等待模擬數據中...</div>
+        <div class="summary" id="statBox">等待數據中...</div>
         <div class="log-container" id="logBox"></div>
     </div>
 </div>
 
 <script>
-    // 修正後的音訊邏輯
     let bgm = new Audio('bgm.mp3');
     bgm.loop = true;
     let audioStarted = false;
 
-    function initAudio() {
-        if (!audioStarted) {
-            bgm.play().catch(e => console.log("音樂播放受限，等待點擊"));
-            audioStarted = true;
-        }
-    }
-
-    // 網頁開啟自動執行一次模擬
-    window.onload = function() {
-        setTimeout(runSimulation, 300);
+    // 官方 1-10 星賠率表
+    const payTable = {
+        1: { 1: 50 },
+        2: { 2: 75 },
+        3: { 3: 500, 2: 50 },
+        4: { 4: 1000, 3: 100, 2: 25 },
+        5: { 5: 2000, 4: 500, 3: 50 },
+        6: { 6: 25000, 5: 1000, 4: 200, 3: 25 },
+        7: { 7: 100000, 6: 3000, 5: 300, 4: 50, 3: 25, 0: 25 },
+        8: { 8: 500000, 7: 20000, 6: 1000, 5: 200, 4: 25, 0: 25 },
+        9: { 9: 1000000, 8: 100000, 7: 3000, 6: 500, 5: 100, 4: 25, 0: 25 },
+        10: { 10: 5000000, 9: 250000, 8: 25000, 7: 2500, 6: 250, 5: 25, 0: 25 }
     };
 
-    function toggleOptions() {
-        const choice = document.getElementById('mainChoice').value;
-        document.getElementById('star4Options').classList.toggle('hidden', choice !== "1");
-        document.getElementById('bigSmallOptions').classList.toggle('hidden', choice !== "2");
+    function initAudio() { if (!audioStarted) { bgm.play().catch(e => console.log("等待點擊播放")); audioStarted = true; } }
+
+    function updateUI() {
+        const type = document.getElementById('gameType').value;
+        document.getElementById('starSelectDiv').classList.toggle('hidden', type !== 'star');
+        document.getElementById('bigSmallDiv').classList.toggle('hidden', type !== 'bigsmall');
     }
 
-    function toggleManualInput() {
-        const pickMode = document.getElementById('pickMode').value;
-        document.getElementById('manualInputDiv').classList.toggle('hidden', pickMode !== "1");
+    function generateNums(n) {
+        let s = new Set();
+        while(s.size < n) s.add(Math.floor(Math.random()*80)+1);
+        return Array.from(s).sort((a,b)=>a-b);
     }
-
-    function generateNumbers(size) {
-        let nums = new Set();
-        while (nums.size < size) nums.add(Math.floor(Math.random() * 80) + 1);
-        return Array.from(nums).sort((a, b) => a - b);
-    }
-
-    function padNum(num) { return num.toString().padStart(2, '0'); }
 
     function runSimulation() {
-        const choice = document.getElementById('mainChoice').value;
-        const initialMoney = parseInt(document.getElementById('moneyInput').value);
-        if (isNaN(initialMoney) || initialMoney < 25) return;
+        const initialBudget = parseInt(document.getElementById('budget').value);
+        if (isNaN(initialBudget) || initialBudget < 25) return;
         
-        const totalRounds = Math.floor(initialMoney / 25);
-        let currentMoney = initialMoney;
-        let winCount = 0;
-        let logHTML = "";
+        const type = document.getElementById('gameType').value;
+        const star = parseInt(document.getElementById('starCount').value);
+        const rounds = Math.floor(initialBudget / 25);
+        
+        let balance = initialBudget;
+        let wins = 0;
+        let logs = "";
 
-        // 手動選號邏輯
-        let manualNums = [];
-        if (choice === "1" && document.getElementById('pickMode').value === "1") {
-            const rawInput = document.getElementById('manualNumbers').value.trim().split(/\s+/);
-            manualNums = rawInput.map(n => parseInt(n)).filter(n => !isNaN(n) && n >= 1 && n <= 80);
-            if (manualNums.length !== 4) manualNums = generateNumbers(4);
-            manualNums.sort((a, b) => a - b);
-        }
+        for(let i=1; i<=rounds; i++) {
+            balance -= 25;
+            let draw = generateNums(20);
+            let row = `<div class="log-row">[第${i}期] `;
 
-        for (let i = 1; i <= totalRounds; i++) {
-            currentMoney -= 25;
-            let drawNums = generateNumbers(20);
-            let roundLog = `<div class="log-row">[第${i.toString().padStart(3, ' ')}期] `;
-
-            if (choice === "1") {
-                let playerNums = (document.getElementById('pickMode').value === "2") ? generateNumbers(4) : [...manualNums];
-                roundLog += `號碼: ${playerNums.map(padNum).join(' ')} | `;
-                let match = 0;
-                drawNums.forEach(num => {
-                    if (playerNums.includes(num)) {
-                        roundLog += `<span class="match-num">[${padNum(num)}]</span> `;
-                        match++;
-                    } else {
-                        roundLog += ` ${padNum(num)}  `;
-                    }
-                });
-                if (match === 4) { currentMoney += 1000; winCount++; roundLog += `<span class="win-text">=> 全中! +1000</span>`; }
-                else if (match === 3) { currentMoney += 100; winCount++; roundLog += `<span class="win-text">=> 中3! +100</span>`; }
-                else if (match === 2) { currentMoney += 25; winCount++; roundLog += `<span class="win-text">=> 保本</span>`; }
-                else { roundLog += `<span class="lose-text">=> 槓龜</span>`; }
+            if (type === 'star') {
+                let mine = generateNums(star);
+                let hits = mine.filter(n => draw.includes(n));
+                let prize = payTable[star][hits.length] || 0;
+                
+                row += `號碼: ${mine.join(',')} | 中: ${hits.length} | `;
+                if(prize > 0) { balance += prize; wins++; row += `<span class="win-text">獎金: ${prize}</span>`; }
+                else { row += `<span class="lose-text">槓龜</span>`; }
             } else {
-                let guess = document.getElementById('guessDirection').value;
-                let bigCount = 0;
-                drawNums.forEach(num => { if (num >= 41) bigCount++; });
-                let smallCount = 20 - bigCount;
-                let won = (guess === "1" && bigCount >= 13) || (guess === "2" && smallCount >= 13);
-                roundLog += `預測:${guess==="1"?'大':'小'} | 大:${bigCount} 小:${smallCount} | ${won ? '<span class="win-text">贏了! +150</span>' : '<span class="lose-text">輸了</span>'}`;
-                if (won) { currentMoney += 150; winCount++; }
+                let big = draw.filter(n => n >= 41).length;
+                let dir = document.getElementById('guessDir').value;
+                let won = (dir === '1' && big >= 13) || (dir === '2' && (20-big) >= 13);
+                row += `大:${big} 小:${20-big} | `;
+                if(won) { balance += 150; wins++; row += `<span class="win-text">贏了! +150</span>`; }
+                else { row += `<span class="lose-text">輸了</span>`; }
             }
-            roundLog += `</div>`;
-            logHTML += roundLog;
+            logs += row + `</div>`;
         }
 
-        // 恢復完整結算報告
-        const netProfit = currentMoney - initialMoney;
+        const netProfit = balance - initialBudget;
         const profitClass = netProfit >= 0 ? "" : "lose";
-        document.getElementById('summaryBox').innerHTML = `
+        document.getElementById('statBox').innerHTML = `
             💰 結算報告 💰<br>
-            投入總本金：${initialMoney} 元<br>
-            最終餘額：<span class="${profitClass}">${currentMoney} 元</span><br>
+            投入總本金：${initialBudget} 元<br>
+            最終餘額：<span class="${profitClass}">${balance} 元</span><br>
             總淨利潤：<span class="${profitClass}">${netProfit} 元</span><br>
-            總勝率(含保本)：${((winCount / totalRounds) * 100).toFixed(2)} %
+            總勝率(含保本)：${((wins/rounds)*100).toFixed(2)} %
         `;
-        document.getElementById('logBox').innerHTML = logHTML;
+        document.getElementById('logBox').innerHTML = logs;
     }
+
+    window.onload = () => setTimeout(runSimulation, 300);
 </script>
 </body>
 </html>
