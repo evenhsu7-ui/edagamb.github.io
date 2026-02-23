@@ -50,7 +50,6 @@
             transition: 0.2s;
         }
         button:hover { background-color: #d49a35; }
-        button:active { transform: scale(0.98); }
         .hidden { display: none; }
         .result-panel {
             margin-top: 20px;
@@ -59,7 +58,16 @@
             padding: 15px;
             border: 1px solid #333;
         }
-        .summary { font-size: 18px; font-weight: bold; line-height: 1.6; color: #4caf50; }
+        /* 核心報表樣式 */
+        .summary { 
+            font-size: 18px; 
+            font-weight: bold; 
+            line-height: 1.8; 
+            color: #4caf50; 
+            padding: 10px;
+            background: #000;
+            border-radius: 6px;
+        }
         .summary span.lose { color: #ff5252; }
         .log-container {
             margin-top: 15px;
@@ -82,7 +90,7 @@
 
 <div class="container">
     <h1>🎰 我好愛台彩賓果 🎰</h1>
-    <p style="text-align: center; color: #e5a93c; font-size: 14px;">(點擊畫面任何地方即刻啟動音樂)</p>
+    <p style="text-align: center; color: #e5a93c; font-size: 14px; margin-top: -5px;">(點擊畫面任何地方即刻啟動音樂)</p>
 
     <div class="form-group">
         <label>遊戲模式：</label>
@@ -104,7 +112,7 @@
             <option value="1">手動固定選號</option>
         </select>
         <div id="manualInputDiv" class="hidden" style="margin-top: 10px;">
-            <label>請輸入 4 個數字 (1~80)，用空白鍵隔開：</label>
+            <label>輸入 4 個數字 (用空白隔開)：</label>
             <input type="text" id="manualNumbers" placeholder="例如: 05 12 34 78">
         </div>
     </div>
@@ -120,53 +128,43 @@
     <button onclick="runSimulation()">開始瘋狂模擬</button>
 
     <div id="resultArea" class="result-panel">
-        <div class="summary" id="summaryBox">等待模擬中...</div>
+        <div class="summary" id="summaryBox">等待模擬數據中...</div>
         <div class="log-container" id="logBox"></div>
     </div>
 </div>
 
 <script>
+    // 修正後的音訊邏輯
     let bgm = new Audio('bgm.mp3');
     bgm.loop = true;
     let audioStarted = false;
 
     function initAudio() {
         if (!audioStarted) {
-            bgm.play().catch(e => console.log("音樂啟動中"));
+            bgm.play().catch(e => console.log("音樂播放受限，等待點擊"));
             audioStarted = true;
         }
     }
 
-    // 網頁開啟自動執行一次
+    // 網頁開啟自動執行一次模擬
     window.onload = function() {
-        setTimeout(runSimulation, 500);
+        setTimeout(runSimulation, 300);
     };
 
     function toggleOptions() {
         const choice = document.getElementById('mainChoice').value;
-        if (choice === "1") {
-            document.getElementById('star4Options').classList.remove('hidden');
-            document.getElementById('bigSmallOptions').classList.add('hidden');
-        } else {
-            document.getElementById('star4Options').classList.add('hidden');
-            document.getElementById('bigSmallOptions').classList.remove('hidden');
-        }
+        document.getElementById('star4Options').classList.toggle('hidden', choice !== "1");
+        document.getElementById('bigSmallOptions').classList.toggle('hidden', choice !== "2");
     }
 
     function toggleManualInput() {
         const pickMode = document.getElementById('pickMode').value;
-        if (pickMode === "1") {
-            document.getElementById('manualInputDiv').classList.remove('hidden');
-        } else {
-            document.getElementById('manualInputDiv').classList.add('hidden');
-        }
+        document.getElementById('manualInputDiv').classList.toggle('hidden', pickMode !== "1");
     }
 
     function generateNumbers(size) {
         let nums = new Set();
-        while (nums.size < size) {
-            nums.add(Math.floor(Math.random() * 80) + 1);
-        }
+        while (nums.size < size) nums.add(Math.floor(Math.random() * 80) + 1);
         return Array.from(nums).sort((a, b) => a - b);
     }
 
@@ -182,14 +180,12 @@
         let winCount = 0;
         let logHTML = "";
 
+        // 手動選號邏輯
         let manualNums = [];
         if (choice === "1" && document.getElementById('pickMode').value === "1") {
             const rawInput = document.getElementById('manualNumbers').value.trim().split(/\s+/);
             manualNums = rawInput.map(n => parseInt(n)).filter(n => !isNaN(n) && n >= 1 && n <= 80);
-            if (manualNums.length !== 4) {
-                // 如果手動輸入不完全，自動補足
-                manualNums = generateNumbers(4);
-            }
+            if (manualNums.length !== 4) manualNums = generateNumbers(4);
             manualNums.sort((a, b) => a - b);
         }
 
@@ -200,7 +196,7 @@
 
             if (choice === "1") {
                 let playerNums = (document.getElementById('pickMode').value === "2") ? generateNumbers(4) : [...manualNums];
-                roundLog += `你的號碼: ${playerNums.map(padNum).join(' ')} | 開獎: `;
+                roundLog += `號碼: ${playerNums.map(padNum).join(' ')} | `;
                 let match = 0;
                 drawNums.forEach(num => {
                     if (playerNums.includes(num)) {
@@ -212,34 +208,30 @@
                 });
                 if (match === 4) { currentMoney += 1000; winCount++; roundLog += `<span class="win-text">=> 全中! +1000</span>`; }
                 else if (match === 3) { currentMoney += 100; winCount++; roundLog += `<span class="win-text">=> 中3! +100</span>`; }
-                else if (match === 2) { currentMoney += 25; winCount++; roundLog += `<span class="win-text">=> 保本! +25</span>`; }
+                else if (match === 2) { currentMoney += 25; winCount++; roundLog += `<span class="win-text">=> 保本</span>`; }
                 else { roundLog += `<span class="lose-text">=> 槓龜</span>`; }
             } else {
-                let guessDirection = document.getElementById('guessDirection').value;
-                let bigCount = 0, smallCount = 0;
-                drawNums.forEach(num => { if (num >= 41) bigCount++; else smallCount++; });
-                roundLog += `預測: ${guessDirection === "1" ? "大" : "小"} | 開獎: 大(${padNum(bigCount)}) 小(${padNum(smallCount)}) | `;
-                let isBigWin = (bigCount >= 13);
-                let isSmallWin = (smallCount >= 13);
-                if ((guessDirection === "1" && isBigWin) || (guessDirection === "2" && isSmallWin)) {
-                    currentMoney += 150; winCount++; roundLog += `<span class="win-text">=> 贏了! +150</span>`;
-                } else {
-                    roundLog += `<span class="lose-text">=> 輸了</span>`;
-                }
+                let guess = document.getElementById('guessDirection').value;
+                let bigCount = 0;
+                drawNums.forEach(num => { if (num >= 41) bigCount++; });
+                let smallCount = 20 - bigCount;
+                let won = (guess === "1" && bigCount >= 13) || (guess === "2" && smallCount >= 13);
+                roundLog += `預測:${guess==="1"?'大':'小'} | 大:${bigCount} 小:${smallCount} | ${won ? '<span class="win-text">贏了! +150</span>' : '<span class="lose-text">輸了</span>'}`;
+                if (won) { currentMoney += 150; winCount++; }
             }
             roundLog += `</div>`;
             logHTML += roundLog;
         }
 
+        // 恢復完整結算報告
         const netProfit = currentMoney - initialMoney;
         const profitClass = netProfit >= 0 ? "" : "lose";
-        const winRate = ((winCount / totalRounds) * 100).toFixed(2);
-
         document.getElementById('summaryBox').innerHTML = `
-            結算報告：共跑了 ${totalRounds} 期<br>
-            投入本金：${initialMoney} 元<br>
-            最終餘額：<span class="${profitClass}">${currentMoney} 元 (淨利潤: ${netProfit} 元)</span><br>
-            總勝率(含保本)：${winRate} %
+            💰 結算報告 💰<br>
+            投入總本金：${initialMoney} 元<br>
+            最終餘額：<span class="${profitClass}">${currentMoney} 元</span><br>
+            總淨利潤：<span class="${profitClass}">${netProfit} 元</span><br>
+            總勝率(含保本)：${((winCount / totalRounds) * 100).toFixed(2)} %
         `;
         document.getElementById('logBox').innerHTML = logHTML;
     }
