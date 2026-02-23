@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我好愛台彩賓果 - 模擬器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #eeeeee;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        }
+        h1 {
+            color: #e5a93c;
+            text-align: center;
+            border-bottom: 2px solid #e5a93c;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #aaa; }
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background-color: #2c2c2c;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #e5a93c;
+            color: #121212;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        button:hover { background-color: #d49a35; }
+        button:active { transform: scale(0.98); }
+        
+        .hidden { display: none; }
+        
+        .result-panel {
+            margin-top: 20px;
+            background-color: #181818;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+        .summary { font-size: 18px; font-weight: bold; line-height: 1.6; color: #4caf50; }
+        .summary span.lose { color: #ff5252; }
+        
+        .log-container {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #000;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .log-row { border-bottom: 1px dashed #333; padding: 4px 0; }
+        .match-num { color: #111; background-color: #e5a93c; padding: 0 2px; border-radius: 3px; font-weight: bold;}
+        .win-text { color: #ffeb3b; }
+        .lose-text { color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎰 我好愛台彩賓果 🎰</h1>
+
+    <div class="form-group">
+        <label>遊戲模式：</label>
+        <select id="mainChoice" onchange="toggleOptions()">
+            <option value="1">1. 4星玩法</option>
+            <option value="2">2. 猜大小玩法</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>投入總本金 (25的倍數)：</label>
+        <input type="number" id="moneyInput" value="1000" step="25" min="25">
+    </div>
+
+    <div id="star4Options" class="form-group">
+        <label>選號方式：</label>
+        <select id="pickMode" onchange="toggleManualInput()">
+            <option value="2">電腦隨機換號</option>
+            <option value="1">手動固定選號</option>
+        </select>
+        
+        <div id="manualInputDiv" class="hidden" style="margin-top: 10px;">
+            <label>請輸入 4 個數字 (1~80)，用空白鍵隔開：</label>
+            <input type="text" id="manualNumbers" placeholder="例如: 05 12 34 78">
+        </div>
+    </div>
+
+    <div id="bigSmallOptions" class="form-group hidden">
+        <label>預測方向：</label>
+        <select id="guessDirection">
+            <option value="1">猜大 (41~80號)</option>
+            <option value="2">猜小 (01~40號)</option>
+        </select>
+    </div>
+
+    <button onclick="runSimulation()">開始瘋狂模擬</button>
+
+    <div id="resultArea" class="result-panel hidden">
+        <div class="summary" id="summaryBox"></div>
+        <div class="log-container" id="logBox"></div>
+    </div>
+</div>
+
+<script>
+    // UI 切換邏輯
+    function toggleOptions() {
+        const choice = document.getElementById('mainChoice').value;
+        if (choice === "1") {
+            document.getElementById('star4Options').classList.remove('hidden');
+            document.getElementById('bigSmallOptions').classList.add('hidden');
+        } else {
+            document.getElementById('star4Options').classList.add('hidden');
+            document.getElementById('bigSmallOptions').classList.remove('hidden');
+        }
+    }
+
+    function toggleManualInput() {
+        const pickMode = document.getElementById('pickMode').value;
+        if (pickMode === "1") {
+            document.getElementById('manualInputDiv').classList.remove('hidden');
+        } else {
+            document.getElementById('manualInputDiv').classList.add('hidden');
+        }
+    }
+
+    // 產生不重複亂數並排序
+    function generateNumbers(size) {
+        let nums = new Set();
+        while (nums.size < size) {
+            nums.add(Math.floor(Math.random() * 80) + 1);
+        }
+        return Array.from(nums).sort((a, b) => a - b);
+    }
+
+    // 格式化數字 (補零)
+    function padNum(num) {
+        return num.toString().padStart(2, '0');
+    }
+
+    // 主模擬邏輯
+    function runSimulation() {
+        const choice = document.getElementById('mainChoice').value;
+        const initialMoney = parseInt(document.getElementById('moneyInput').value);
+        
+        if (isNaN(initialMoney) || initialMoney < 25) {
+            alert("本金不足以購買一注 (25元)！");
+            return;
+        }
+        
+        const totalRounds = Math.floor(initialMoney / 25);
+        let currentMoney = initialMoney;
+        let winCount = 0;
+        let loseCount = 0;
+        let logHTML = "";
+
+        // 處理手動選號輸入
+        let manualNums = [];
+        if (choice === "1" && document.getElementById('pickMode').value === "1") {
+            const rawInput = document.getElementById('manualNumbers').value.trim().split(/\s+/);
+            manualNums = rawInput.map(n => parseInt(n)).filter(n => !isNaN(n) && n >= 1 && n <= 80);
+            if (manualNums.length !== 4) {
+                alert("請正確輸入 4 個 1~80 的數字！");
+                return;
+            }
+            manualNums.sort((a, b) => a - b);
+        }
+
+        // 開始期數迴圈
+        for (let i = 1; i <= totalRounds; i++) {
+            currentMoney -= 25;
+            let drawNums = generateNumbers(20);
+            let roundLog = `<div class="log-row">[第${i.toString().padStart(3, ' ')}期] `;
+
+            if (choice === "1") {
+                let playerNums = (document.getElementById('pickMode').value === "2") ? generateNumbers(4) : [...manualNums];
+                
+                roundLog += `你的號碼: ${playerNums.map(padNum).join(' ')} | 開獎: `;
+                
+                let match = 0;
+                drawNums.forEach(num => {
+                    if (playerNums.includes(num)) {
+                        roundLog += `<span class="match-num">[${padNum(num)}]</span> `;
+                        match++;
+                    } else {
+                        roundLog += ` ${padNum(num)}  `;
+                    }
+                });
+
+                if (match === 4) { currentMoney += 1000; winCount++; roundLog += `<span class="win-text">=> 全中! +1000</span>`; }
+                else if (match === 3) { currentMoney += 100; winCount++; roundLog += `<span class="win-text">=> 中3! +100</span>`; }
+                else if (match === 2) { currentMoney += 25; winCount++; roundLog += `<span class="win-text">=> 保本! +25</span>`; }
+                else { loseCount++; roundLog += `<span class="lose-text">=> 槓龜</span>`; }
+
+            } else {
+                let guessDirection = document.getElementById('guessDirection').value;
+                let bigCount = 0, smallCount = 0;
+                
+                drawNums.forEach(num => { if (num >= 41) bigCount++; else smallCount++; });
+                
+                roundLog += `預測: ${guessDirection === "1" ? "大" : "小"} | 開獎: 大(${padNum(bigCount)}顆) 小(${padNum(smallCount)}顆) | `;
+                
+                let isBigWin = (bigCount >= 13);
+                let isSmallWin = (smallCount >= 13);
+
+                if (guessDirection === "1" && isBigWin) {
+                    currentMoney += 150; winCount++; roundLog += `<span class="win-text">=> 贏了! +150</span>`;
+                } else if (guessDirection === "2" && isSmallWin) {
+                    currentMoney += 150; winCount++; roundLog += `<span class="win-text">=> 贏了! +150</span>`;
+                } else {
+                    loseCount++; roundLog += `<span class="lose-text">=> 輸了 (莊家收走)</span>`;
+                }
+            }
+            roundLog += `</div>`;
+            logHTML += roundLog;
+        }
+
+        // 更新介面
+        const netProfit = currentMoney - initialMoney;
+        const profitClass = netProfit >= 0 ? "" : "lose";
+        const winRate = ((winCount / totalRounds) * 100).toFixed(2);
+
+        document.getElementById('summaryBox').innerHTML = `
+            結算報告：共跑了 ${totalRounds} 期<br>
+            最終餘額：<span class="${profitClass}">${currentMoney} 元 (淨利潤: ${netProfit} 元)</span><br>
+            總勝率(含保本)：${winRate} %
+        `;
+        
+        document.getElementById('logBox').innerHTML = logHTML;
+        document.getElementById('resultArea').classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>
